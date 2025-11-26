@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crispindo Command Center</title>
+    <style>
+        /* CSS VARIABLES (Tema) */
+        :root {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --primary: #38bdf8;
+            --accent: #0ea5e9;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* LIGHT THEME OVERRIDES */
+        body.light-mode {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-input: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            padding: 20px; 
+            padding-bottom: 100px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        /* HEADER & THEME SWITCHER */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        h1 { 
+            font-size: 1.5rem; 
+            color: var(--primary); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-weight: 800;
+        }
+        .theme-btn {
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-main); padding: 8px 12px; border-radius: 20px;
+            cursor: pointer; font-size: 1.2rem; transition: 0.3s;
+        }
+
+        /* NAVIGATION */
+        .nav { 
+            display: flex; gap: 5px; background: var(--bg-card); 
+            padding: 5px; border-radius: 12px; margin-bottom: 20px; 
+            box-shadow: var(--shadow);
+        }
+        .nav button {
+            flex: 1; background: transparent; border: none; color: var(--text-muted);
+            padding: 12px; cursor: pointer; font-weight: 600; border-radius: 8px; transition: 0.3s;
+        }
+        .nav button.active { 
+            background: var(--primary); color: #000; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+
+        /* GENERAL UI */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { 
+            background: var(--bg-card); padding: 20px; border-radius: 16px; 
+            border: 1px solid var(--border); margin-bottom: 20px; 
+            box-shadow: var(--shadow);
+        }
+        
+        label { display: block; color: var(--text-muted); font-size: 0.85em; margin-bottom: 6px; font-weight: 600; }
+        
+        input, select {
+            width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-main); border-radius: 8px; font-size: 14px; margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        .btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 8px; 
+            font-weight: bold; cursor: pointer; transition: 0.2s; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-primary { background: var(--primary); color: #09090b; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-danger { background: var(--danger); color: white; width: auto; padding: 4px 10px; font-size: 0.8em; border-radius: 6px;}
+
+        /* TOGGLE GROUP (Pilihan Mode) */
+        .toggle-group {
+            display: flex;
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+        .toggle-opt {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .toggle-opt.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 10px; }
+        th { text-align: left; color: var(--primary); padding: 8px; border-bottom: 2px solid var(--border); }
+        td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
+
+        /* SPECIFIC LAYOUTS */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        /* CARD PRODUK (TAB 2) */
+        .product-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed var(--border); padding-bottom: 10px; margin-bottom: 10px;
+        }
+        .product-card-header h3 { color: var(--text-main); font-size: 1.2rem; }
+        
+        .resep-list { list-style: none; margin-bottom: 15px; }
+        .resep-item { 
+            display: flex; justify-content: space-between; padding: 8px 0; 
+            border-bottom: 1px solid var(--border); font-size: 0.95em;
+        }
+
+        .calc-area {
+            background: var(--bg-input); padding: 15px; border-radius: 10px; margin-top: 15px;
+        }
+        .result-display {
+            margin-top: 15px; padding-top: 15px; border-top: 2px dashed var(--border);
+            display: none; /* Hidden by default */
+        }
+        .result-display.show { display: block; }
+        
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
+        .result-row.main { font-size: 1.1em; color: var(--text-main); font-weight: bold; margin-top: 5px; }
+        .highlight-hpp { color: var(--success); font-size: 1.3em; }
+
+        /* TAB 3 */
+        .big-select { font-size: 1.1em; padding: 15px; border: 2px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Crispindo<br><span style="font-size:0.6em; color:var(--text-muted)">Command Center</span></h1>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">☀️</button>
+    </header>
+    
+    <div class="nav">
+        <button class="active" onclick="switchTab('tab1')">1. Master Bahan</button>
+        <button onclick="switchTab('tab2')">2. Resep</button>
+        <button onclick="switchTab('tab3')">3. Harga Jual</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <div class="card">
+            <h3 style="margin-bottom:15px; color:var(--primary);">Gudang Bahan Baku</h3>
+            <div class="grid-2">
+                <div><label>Nama Bahan</label><input type="text" id="bahanNama"></div>
+                <div><label>Harga Beli</label><input type="number" id="bahanHarga"></div>
+            </div>
+            <div class="grid-2">
+                <div><label>Satuan</label>
+                    <select id="bahanSatuan">
+                        <option value="kg">Kg</option>
+                        <option value="pack">Pack</option>
+                        <option value="btl">Botol</option>
+                    </select>
+                </div>
+                <div><label>Isi/Konversi</label><input type="number" id="bahanIsi" placeholder="cth: 1000"></div>
+            </div>
+            <button class="btn btn-primary" onclick="addBahan()">+ Simpan Bahan</button>
+        </div>
+        <div class="card">
+            <table id="tableBahan"><thead><tr><th>Bahan</th><th>Harga</th><th>Hapus</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <div class="card">
+            <h3 style="margin-bottom:10px;">Buat Produk Baru</h3>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="prodNama" placeholder="Nama Produk (misal: Basreng Stik)">
+                <button class="btn btn-primary" style="width: auto; margin-bottom:10px;" onclick="addProduk()">Buat</button>
+            </div>
+        </div>
+        
+        <div id="listProduk"></div>
+    </div>
+
+    <div id="tab3" class="tab-content">
+        <div class="card" style="border: 2px solid var(--primary);">
+            <label style="color:var(--primary); font-size:1.1em;">PILIH PRODUK DULU:</label>
+            <select id="selectStratProduk" class="big-select" onchange="loadStratProduk()"></select>
+            
+            <div id="stratInfo" style="margin-top:15px; display:none;">
+                <div class="result-row main"><span>HPP per Bungkus:</span> <span id="displayHpp">Rp 0</span></div>
+                <div class="result-row"><span>Berat Kemasan:</span> <span id="displayBerat">0g</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:15px;">Kalkulator Cuan</h3>
+            
+            <label>Mau Untung Pakai Cara Apa?</label>
+            <div class="toggle-group">
+                <div class="toggle-opt active" id="modeRp" onclick="setProfitMode('rupiah')">Rupiah (Rp)</div>
+                <div class="toggle-opt" id="modePct" onclick="setProfitMode('persen')">Persen (%)</div>
+            </div>
+
+            <label id="labelProfit">Target Profit (Rp)</label>
+            <input type="number" id="inputProfit" placeholder="Contoh: 2000" oninput="hitungJual()">
+            <small id="hintProfit" style="display:block; margin-top:-5px; margin-bottom:15px; color:var(--text-muted); font-size:0.8em;">
+                Mau untung bersih berapa Rupiah per bungkus?
+            </small>
+
+            <div class="grid-2">
+                <div>
+                    <label>Biaya Admin Shopee (%)</label>
+                    <input type="number" id="inputAdmin" value="10.0" step="0.1" oninput="hitungJual()">
+                </div>
+                <div>
+                    <label>Target ROAS Iklan (x)</label>
+                    <input type="number" id="inputRoas" value="5" oninput="hitungJual()">
+                    <small style="color:var(--text-muted); font-size:0.7em;">Isi 0 jika tidak iklan</small>
+                </div>
+            </div>
+
+            <div style="background:var(--bg-input); padding:15px; border-radius:10px; margin-top:15px; text-align:center;">
+                <label>HARGA JUAL DI SHOPEE:</label>
+                <div id="finalHarga" style="font-size:2em; font-weight:bold; color:var(--success); margin:10px 0;">Rp 0</div>
+                
+                <div style="font-size:0.85em; color:var(--text-muted); text-align:left; border-top:1px solid var(--border); padding-top:10px;">
+                    Rincian:
+                    <br>• Modal HPP: <span id="rinciModal">0</span>
+                    <br>• Admin Shopee: <span id="rinciAdmin" style="color:var(--danger)">0</span>
+                    <br>• Biaya Iklan: <span id="rinciIklan" style="color:var(--danger)">0</span>
+                    <br>• <b>Bersih Masuk Kantong: <span id="rinciBersih" style="color:var(--success)">0</span></b>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="opacity: 0.8;">
+            <label>Alat Bantu: Cek % Admin Shopee</label>
+            <div class="grid-2">
+                <input type="number" id="cekJual" placeholder="Harga Jual">
+                <input type="number" id="cekTerima" placeholder="Terima Bersih">
+            </div>
+            <button class="btn" style="background:var(--bg-input); border:1px solid var(--border); color:var(--text-main)" onclick="cekAdmin()">Cek Persen</button>
+            <div id="hasilAdmin" style="margin-top:5px; font-weight:bold; color:var(--warning)"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- THEME LOGIC ---
+    function toggleTheme() {
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        document.getElementById('themeIcon').innerText = isLight ? '🌙' : '☀️';
+        localStorage.setItem('crispindo_theme', isLight ? 'light' : 'dark');
+    }
+    // Load saved theme
+    if(localStorage.getItem('crispindo_theme') === 'light') toggleTheme();
+
+    // --- DATA STORE ---
+    let db = {
+        bahan: JSON.parse(localStorage.getItem('crispindo_bahan')) || [],
+        produk: JSON.parse(localStorage.getItem('crispindo_produk')) || []
+    };
+
+    let profitMode = 'rupiah'; // Default Rupiah
+
+    // Fungsi Ganti Mode (Rp / %)
+    function setProfitMode(mode) {
+        profitMode = mode;
+        
+        // Update Tampilan Tombol
+        document.getElementById('modeRp').className = mode === 'rupiah' ? 'toggle-opt active' : 'toggle-opt';
+        document.getElementById('modePct').className = mode === 'persen' ? 'toggle-opt active' : 'toggle-opt';
+        
+        // Update Teks Label & Hint
+        if(mode === 'rupiah') {
+            document.getElementById('labelProfit').innerText = "Target Profit (Rp)";
+            document.getElementById('inputProfit').placeholder = "Contoh: 2000";
+            document.getElementById('hintProfit').innerText = "Mau untung bersih berapa Rupiah per bungkus?";
+        } else {
+            document.getElementById('labelProfit').innerText = "Target Profit Margin (%)";
+            document.getElementById('inputProfit').placeholder = "Contoh: 30";
+            document.getElementById('hintProfit').innerText = "Mau ambil profit berapa % dari harga jual?";
+        }
+        
+        // Hitung ulang langsung
+        hitungJual();
+    }
+
+    // Fungsi Utama Hitung Jual (FIXED)
+    function hitungJual() {
+        const hpp = parseFloat(el('displayHpp').dataset.val) || 0;
+        const profitVal = parseFloat(el('inputProfit').value) || 0;
+        const adminPct = parseFloat(el('inputAdmin').value) || 0;
+        const roas = parseFloat(el('inputRoas').value) || 0;
+
+        if(hpp === 0) return;
+
+        // 1. Hitung Beban (Admin + Iklan)
+        const adminDec = adminPct / 100;
+        const iklanDec = roas > 0 ? (1 / roas) : 0;
+        const totalBeban = adminDec + iklanDec;
+
+        let hargaJual = 0;
+
+        // 2. Logika Perhitungan (Membedakan Rupiah vs Persen)
+        if (profitMode === 'rupiah') {
+            // RUMUS RUPIAH: (Modal + MauUntungRp) / (1 - BebanAdminIklan)
+            hargaJual = (hpp + profitVal) / (1 - totalBeban);
+        } else {
+            // RUMUS PERSEN: Modal / (1 - BebanAdminIklan - TargetMargin%)
+            const marginDec = profitVal / 100; 
+            
+            // Cek biar tidak error jika beban > 100%
+            if (totalBeban + marginDec >= 1) {
+                el('finalHarga').innerText = "Boncos! (Beban > 100%)";
+                return;
+            }
+            hargaJual = hpp / (1 - totalBeban - marginDec);
+        }
+
+        // 3. Tampilkan Harga Jual
+        el('finalHarga').innerText = rp(hargaJual);
+
+        // 4. Hitung Rincian (Mundur dari Harga Jual agar akurat)
+        const biayaAdmin = hargaJual * adminDec;
+        const biayaIklan = hargaJual * iklanDec;
+        const untungBersih = hargaJual - hpp - biayaAdmin - biayaIklan;
+
+        el('rinciModal').innerText = rp(hpp);
+        el('rinciAdmin').innerText = rp(biayaAdmin);
+        el('rinciIklan').innerText = rp(biayaIklan);
+        el('rinciBersih').innerText = rp(untungBersih); 
+    }
+
+    const save = () => {
+        localStorage.setItem('crispindo_bahan', JSON.stringify(db.bahan));
+        localStorage.setItem('crispindo_produk', JSON.stringify(db.produk));
+        renderAll();
+    };
+    const rp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
+    const el = (id) => document.getElementById(id);
+
+    // --- NAVIGATION ---
+    function switchTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        el(id).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // --- TAB 1: BAHAN ---
+    function addBahan() {
+        const nama = el('bahanNama').value;
+        const harga = parseFloat(el('bahanHarga').value);
+        const satuan = el('bahanSatuan').value;
+        let isi = parseFloat(el('bahanIsi').value);
+        
+        if(!isi) { 
+            if(satuan === 'kg') isi = 1000;
+            else isi = 1; 
+        }
+
+        if(nama && harga) {
+            db.bahan.push({ id: Date.now(), nama, harga, satuan, isi });
+            el('bahanNama').value = ''; el('bahanHarga').value = ''; el('bahanIsi').value = '';
+            save();
+        }
+    }
+    
+    function deleteBahan(id) {
+        if(confirm('Hapus bahan ini?')) {
+            db.bahan = db.bahan.filter(b => b.id !== id);
+            save();
+        }
+    }
+
+    // --- TAB 2: PRODUK (RESEP) ---
+    function addProduk() {
+        if(el('prodNama').value) {
+            db.produk.push({ id: Date.now(), nama: el('prodNama').value, resep: [], hasilJadi: 0, beratJual: 0 });
+            el('prodNama').value = '';
+            save();
+        }
+    }
+
+    function addResep(pid) {
+        const bid = el(`sel_${pid}`).value;
+        const qty = parseFloat(el(`qty_${pid}`).value);
+        if(bid && qty) {
+            const p = db.produk.find(x => x.id === pid);
+            p.resep.push({ bahanId: bid, qty });
+            save();
+        }
+    }
+
+    function removeResep(pid, idx) {
+        db.produk.find(x => x.id === pid).resep.splice(idx, 1);
+        save();
+    }
+    
+    function deleteProduk(pid) {
+        if(confirm('Hapus produk ini?')) {
+            db.produk = db.produk.filter(x => x.id !== pid);
+            save();
+        }
+    }
+
+    // FUNGSI HITUNG HPP DI KARTU (TAB 2)
+    function hitungKartu(pid) {
+        const p = db.produk.find(x => x.id === pid);
+        if(!p) return;
+        
+        const hasilJadi = parseFloat(el(`matang_${pid}`).value) || 0;
+        const beratJual = parseFloat(el(`jual_${pid}`).value) || 0;
+
+        // Simpan data terbaru
+        p.hasilJadi = hasilJadi;
+        p.beratJual = beratJual;
+        localStorage.setItem('crispindo_produk', JSON.stringify(db.produk));
+
+        if(hasilJadi <= 0 || beratJual <= 0) {
+            alert("Isi dulu 'Hasil Jadi Matang' dan 'Berat Jual' dengan benar!");
+            return;
+        }
+
+        let totalModal = 0;
+        p.resep.forEach(r => {
+            const b = db.bahan.find(x => x.id == r.bahanId);
+            if(b) totalModal += (r.qty / b.isi) * b.harga;
+        });
+
+        const hppPerGram = totalModal / hasilJadi;
+        const hppPerBungkus = hppPerGram * beratJual;
+
+        el(`resBox_${pid}`).classList.add('show');
+        el(`resTotal_${pid}`).innerText = rp(totalModal);
+        el(`resHppKg_${pid}`).innerText = rp(hppPerGram * 1000);
+        el(`resHppPack_${pid}`).innerText = rp(hppPerBungkus);
+    }
+
+    // --- TAB 3: STRATEGI ---
+    function loadStratProduk() {
+        const pid = el('selectStratProduk').value;
+        const p = db.produk.find(x => x.id == pid);
+        if(!p) {
+            el('stratInfo').style.display = 'none';
+            return;
+        }
+
+        // Hitung ulang HPP
+        let totalModal = 0;
+        p.resep.forEach(r => {
+            const b = db.bahan.find(x => x.id == r.bahanId);
+            if(b) totalModal += (r.qty / b.isi) * b.harga;
+        });
+
+        const hasilJadi = p.hasilJadi || 1; 
+        const beratJual = p.beratJual || 1;
+        const hppPack = (totalModal / hasilJadi) * beratJual;
+
+        el('stratInfo').style.display = 'block';
+        el('displayHpp').innerText = rp(hppPack);
+        el('displayHpp').dataset.val = hppPack;
+        el('displayBerat').innerText = beratJual + " gram";
+        
+        hitungJual();
+    }
+
+    function cekAdmin() {
+        const jual = parseFloat(el('cekJual').value);
+        const terima = parseFloat(el('cekTerima').value);
+        if(jual && terima) {
+            const pct = ((jual - terima)/jual)*100;
+            el('hasilAdmin').innerText = `Potongan Admin: ${pct.toFixed(2)}%`;
+            el('inputAdmin').value = pct.toFixed(1);
+            hitungJual();
+        }
+    }
+
+    // --- RENDER ALL ---
+    function renderAll() {
+        // Tab 1 List
+        const tb = el('tableBahan').querySelector('tbody');
+        tb.innerHTML = '';
+        db.bahan.forEach(b => {
+            tb.innerHTML += `<tr><td>${b.nama}</td><td>${rp(b.harga)}</td><td><button class="btn-danger" onclick="deleteBahan(${b.id})">X</button></td></tr>`;
+        });
+
+        // Tab 2 Cards
+        const lp = el('listProduk');
+        lp.innerHTML = '';
+        const opts = db.bahan.map(b => `<option value="${b.id}">${b.nama}</option>`).join('');
+
+        db.produk.forEach(p => {
+            let listHtml = '';
+            let tempTotal = 0;
+            p.resep.forEach((r, i) => {
+                const b = db.bahan.find(x => x.id == r.bahanId);
+                if(b) {
+                    const cost = (r.qty / b.isi) * b.harga;
+                    tempTotal += cost;
+                    listHtml += `<li class="resep-item"><span>${b.nama} (${r.qty})</span> <span>${rp(cost)} <b style="color:red; cursor:pointer; margin-left:5px;" onclick="removeResep(${p.id}, ${i})">x</b></span></li>`;
+                }
+            });
+
+            // HTML Card Produk (Fixed Layout)
+            lp.innerHTML += `
+            <div class="card">
+                <div class="product-card-header">
+                    <h3>${p.nama}</h3>
+                    <button class="btn-danger" onclick="deleteProduk(${p.id})">Hapus</button>
+                </div>
+                
+                <ul class="resep-list">${listHtml}</ul>
+                <div style="text-align:right; font-size:0.9em; color:var(--text-muted); margin-bottom:10px;">Estimasi Bahan: ${rp(tempTotal)}</div>
+
+                <div style="display:flex; gap:5px; margin-bottom:15px; align-items:center;">
+                    <select id="sel_${p.id}" style="margin-bottom:0;">${opts}</select>
+                    <input type="number" id="qty_${p.id}" placeholder="Qty" style="width:80px; margin:0;">
+                    <button class="btn btn-primary" style="width:auto; margin:0; padding: 10px 15px;" onclick="addResep(${p.id})">+</button>
+                </div>
+
+                <div class="calc-area">
+                    <label>INPUT DATA MATANG:</label>
+                    <div class="grid-2">
+                        <div><small>Hasil Jadi (1 wajan)</small><input type="number" id="matang_${p.id}" value="${p.hasilJadi || ''}" placeholder="Gram"></div>
+                        <div><small>Dijual Per</small><input type="number" id="jual_${p.id}" value="${p.beratJual || ''}" placeholder="Gram"></div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="hitungKartu(${p.id})">HITUNG HPP SAYA 🖩</button>
+
+                    <div id="resBox_${p.id}" class="result-display">
+                        <div class="result-row"><span>Total Modal Resep:</span> <span id="resTotal_${p.id}">-</span></div>
+                        <div class="result-row"><span>HPP per Kg:</span> <span id="resHppKg_${p.id}">-</span></div>
+                        <div class="result-row main"><span>HPP PER BUNGKUS:</span> <span class="highlight-hpp" id="resHppPack_${p.id}">-</span></div>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        // Tab 3 Select
+        const sp = el('selectStratProduk');
+        sp.innerHTML = '<option value="">-- PILIH PRODUK --</option>';
+        db.produk.forEach(p => sp.innerHTML += `<option value="${p.id}">${p.nama}</option>`);
+    }
+
+    renderAll();
+</script>
+
+</body>
+</html>
